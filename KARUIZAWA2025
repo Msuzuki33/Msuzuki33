@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>軽井沢宅マニュアル(鈴木)</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background-color: #4b6043;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+        }
+        .menu-item {
+            background-color: #6b8e62;
+            padding: 20px;
+            border-radius: 8px;
+            width: 28%;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+        .menu-item a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            display: block;
+        }
+        .calendar-section {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #4b6043;
+            border-bottom: 2px solid #4b6043;
+            padding-bottom: 10px;
+        }
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .calendar th {
+            background-color: #6b8e62;
+            color: white;
+            padding: 10px;
+        }
+        .calendar td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 80px;
+            vertical-align: top;
+            background-color: #f9f9f9;
+        }
+        .calendar .date {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .calendar td:hover {
+            background-color: #e9f0e6;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4b6043;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #5c7453;
+        }
+        .manual-page {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4b6043;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>軽井沢宅マニュアル(鈴木)</h1>
+    </header>
+
+    <div class="menu">
+        <div class="menu-item">
+            <a href="#" onclick="showManual('visit')">訪問時マニュアル</a>
+        </div>
+        <div class="menu-item">
+            <a href="#" onclick="showManual('stay')">滞在時マニュアル</a>
+        </div>
+        <div class="menu-item">
+            <a href="#" onclick="showManual('leave')">退去時マニュアル</a>
+        </div>
+    </div>
+
+    <div id="manualContent" style="display: none;" class="manual-page">
+        <h2 id="manualTitle"></h2>
+        <div id="pptEmbed">
+            <!-- ここにPPTの埋め込みが入ります -->
+            <p>ここにPPTの内容が表示されます。実際のサイトでは、PowerPointファイルの埋め込みまたはPDFへの変換コンテンツが表示されます。</p>
+        </div>
+        <a href="#" onclick="hideManual()" class="back-link">← 目次に戻る</a>
+    </div>
+
+    <div class="calendar-section">
+        <h2>予約カレンダー</h2>
+        <div id="currentMonth"></div>
+        <table class="calendar" id="calendar">
+            <thead>
+                <tr>
+                    <th>日</th>
+                    <th>月</th>
+                    <th>火</th>
+                    <th>水</th>
+                    <th>木</th>
+                    <th>金</th>
+                    <th>土</th>
+                </tr>
+            </thead>
+            <tbody id="calendarBody">
+                <!-- カレンダーの中身はJavaScriptで生成 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- メモ入力用モーダル -->
+    <div id="memoModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>メモを入力</h3>
+            <p id="selectedDate"></p>
+            <textarea id="memoText" placeholder="ここにメモを入力してください"></textarea>
+            <button id="saveMemo">保存</button>
+        </div>
+    </div>
+
+    <script>
+        // カレンダー生成
+        function generateCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            document.getElementById('currentMonth').innerHTML = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            const startingDay = firstDay.getDay();
+            const monthLength = lastDay.getDate();
+            
+            const calendarBody = document.getElementById('calendarBody');
+            calendarBody.innerHTML = '';
+            
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    
+                    if (i === 0 && j < startingDay) {
+                        // 前月の日付
+                    } else if (date > monthLength) {
+                        // 翌月の日付
+                    } else {
+                        cell.innerHTML = `<div class="date">${date}</div>`;
+                        cell.setAttribute('data-date', `${year}-${month+1}-${date}`);
+                        
+                        // ローカルストレージからメモを取得して表示
+                        const memoKey = `memo-${year}-${month+1}-${date}`;
+                        const memo = localStorage.getItem(memoKey);
+                        if (memo) {
+                            const memoDiv = document.createElement('div');
+                            memoDiv.textContent = memo;
+                            memoDiv.style.fontSize = '12px';
+                            memoDiv.style.color = '#666';
+                            cell.appendChild(memoDiv);
+                        }
+                        
+                        date++;
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                calendarBody.appendChild(row);
+                
+                if (date > monthLength) {
+                    break;
+                }
+            }
+            
+            // イベントリスナーの追加
+            const dateCells = document.querySelectorAll('td[data-date]');
+            dateCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    openMemoModal(this.getAttribute('data-date'));
+                });
+            });
+        }
+        
+        // メモモーダルを開く
+        function openMemoModal(dateString) {
+            const modal = document.getElementById('memoModal');
+            const selectedDate = document.getElementById('selectedDate');
+            const memoText = document.getElementById('memoText');
+            
+            selectedDate.textContent = dateString;
+            
+            // 既存のメモを取得して表示
+            const memoKey = `memo-${dateString}`;
+            const existingMemo = localStorage.getItem(memoKey) || '';
+            memoText.value = existingMemo;
+            
+            modal.style.display = 'block';
+        }
+        
+        // マニュアル表示
+        function showManual(type) {
+            const manualContent = document.getElementById('manualContent');
+            const manualTitle = document.getElementById('manualTitle');
+            
+            manualContent.style.display = 'block';
+            
+            if (type === 'visit') {
+                manualTitle.textContent = '訪問時マニュアル';
+            } else if (type === 'stay') {
+                manualTitle.textContent = '滞在時マニュアル';
+            } else if (type === 'leave') {
+                manualTitle.textContent = '退去時マニュアル';
+            }
+            
+            window.scrollTo({
+                top: manualContent.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+        
+        // マニュアル非表示
+        function hideManual() {
+            document.getElementById('manualContent').style.display = 'none';
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // モーダルを閉じる
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('memoModal').style.display = 'none';
+        });
+        
+        // モーダル外クリックで閉じる
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('memoModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // メモ保存
+        document.getElementById('saveMemo').addEventListener('click', function() {
+            const dateString = document.getElementById('selectedDate').textContent;
+            const memoText = document.getElementById('memoText').value;
+            
+            const memoKey = `memo-${dateString}`;
+            
+            if (memoText.trim() === '') {
+                localStorage.removeItem(memoKey);
+            } else {
+                localStorage.setItem(memoKey, memoText);
+            }
+            
+            document.getElementById('memoModal').style.display = 'none';
+            
+            // カレンダーを再生成して変更を反映
+            generateCalendar();
+        });
+        
+        // ページ読み込み時にカレンダーを生成
+        document.addEventListener('DOMContentLoaded', generateCalendar);
+    </script>
+</body>
+</html>
